@@ -1,14 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { fetchProducts } from "./services/productService";
 import ProductList from "./components/ProductList";
-import Cart from "./components/Cart";
+// import Cart from "./components/Cart";
 import SearchBar from "./components/SearchBar";
+import useDebounce from "./hooks/useDebounce";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+const Cart = React.lazy(() => import("./components/Cart"));
 
 const App = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const debounceSearch = useDebounce(search);
 
   const loadProducts = async () => {
     try {
@@ -30,9 +42,9 @@ const App = () => {
 
     return products.filter((p) => {
       console.log(`${p.title} product`);
-      return p.title.toLowerCase().includes(search.toLowerCase());
+      return p.title.toLowerCase().includes(debounceSearch.toLowerCase());
     });
-  }, [search, products]);
+  }, [debounceSearch, products]);
 
   const addToCart = useCallback((product) => {
     console.log("product added!");
@@ -42,14 +54,18 @@ const App = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div style={{ display: "flex", padding: "20;x" }}>
-      <div style={{ flex: 2 }}>
-        <SearchBar value={search} change={setSearch} />
-        <ProductList products={filterProducts} addToCart={addToCart} />
-      </div>
+    <ErrorBoundary>
+      <div style={{ display: "flex", padding: "20;x" }}>
+        <div style={{ flex: 2 }}>
+          <SearchBar value={debounceSearch} change={setSearch} />
+          <ProductList products={filterProducts} addToCart={addToCart} />
+        </div>
 
-      <Cart cart={cart} />
-    </div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Cart cart={cart} />
+        </Suspense>
+      </div>
+    </ErrorBoundary>
   );
 };
 
