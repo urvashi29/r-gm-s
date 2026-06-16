@@ -29,3 +29,14 @@ const App = () => {
 };
 
 export default App;
+
+// one component need state data from 2 provider components
+// <MovieProvider>
+//     <ProductProvider>
+//        <Navbar />
+//     </ProductProvider>
+//   </MovieProvider>
+
+//       <MovieProvider>
+//         <ProductList />
+//       </MovieProvider>
